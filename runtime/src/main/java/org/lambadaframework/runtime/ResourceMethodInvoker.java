@@ -1,6 +1,5 @@
 package org.lambadaframework.runtime;
 
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.NameValuePair;
@@ -23,7 +22,6 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 public class ResourceMethodInvoker {
-
 
     static final Logger logger = Logger.getLogger(ResourceMethodInvoker.class);
 
@@ -66,7 +64,6 @@ public class ResourceMethodInvoker {
             IOException {
 
         logger.debug("Request object is: " + request);
-
 
         Invocable invocable = resourceMethod.getInvocable();
 
@@ -135,6 +132,19 @@ public class ResourceMethodInvoker {
     }
 
     private static Object consumeAnnotation(Request request, Consumes consumesAnnotation, ObjectMapper objectMapper, Parameter parameter, Class<?> parameterClass, Object paramV) throws IOException {
+
+
+        /* I don't know where to put this.
+            if (body instanceof String) {
+                if (parameterClass == String.class) {
+                    deserializedParameter = body;
+                } else
+                    deserializedParameter = mapper.readValue((String) body, parameterClass);
+            } else if (parameterClass.isInstance(body)) {
+                deserializedParameter = body;
+            } else {
+        * */
+
         if (consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
             logger.info("Consume json: " + request.getRequestBody());
             paramV = objectMapper.readValue(request.getRequestBody(), parameterClass);
