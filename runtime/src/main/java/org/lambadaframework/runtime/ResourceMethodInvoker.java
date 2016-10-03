@@ -132,22 +132,18 @@ public class ResourceMethodInvoker {
     }
 
     private static Object consumeAnnotation(Request request, Consumes consumesAnnotation, ObjectMapper objectMapper, Parameter parameter, Class<?> parameterClass, Object paramV) throws IOException {
-
-
-        /* I don't know where to put this.
-            if (body instanceof String) {
-                if (parameterClass == String.class) {
-                    deserializedParameter = body;
-                } else
-                    deserializedParameter = mapper.readValue((String) body, parameterClass);
-            } else if (parameterClass.isInstance(body)) {
-                deserializedParameter = body;
-            } else {
-        * */
-
         if (consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
-            logger.info("Consume json: " + request.getRequestBody());
-            paramV = objectMapper.readValue(request.getRequestBody(), parameterClass);
+            if (request.getRequestBody() instanceof String) {
+                String body = (String) request.getRequestBody();
+                if (parameterClass == String.class) {
+                    paramV = body;
+                } else {
+                    logger.info("Consume json: " + request.getRequestBody());
+                    paramV = objectMapper.readValue(body, parameterClass);
+                }
+            } else if (parameterClass.isInstance(request.getRequestBody())) {
+                paramV = request.getRequestBody();
+            }
         } else if (consumesSpecificType(consumesAnnotation, MediaType.TEXT_PLAIN)) {
             logger.info("Consume plain text");
             paramV = request.getRequestBody();
@@ -160,11 +156,11 @@ public class ResourceMethodInvoker {
     }
 
     private static Object getFormValue(Request request, Class<?> parameterClass, Object paramV, String name) throws IOException {
-        logger.info("Form value decode from url encoded from data: " + (String) request.getRequestBody());
+        logger.info("Form value decode from url encoded from data: " + request.getRequestBody());
         logger.info("looking for key: " + name);
         // Seems due to the api gateway change it's coming in as JSON regardless.
         ObjectMapper objectMapper = new ObjectMapper();
-        String requestBodyDejsoned = objectMapper.readValue(request.getRequestBody(), String.class);
+        String requestBodyDejsoned = objectMapper.readValue((String)request.getRequestBody(), String.class);
         List<NameValuePair> formParams = URLEncodedUtils.parse(requestBodyDejsoned, Charset.forName("UTF-8"));
         List<String> strings = new ArrayList<String>();
         for (NameValuePair each : formParams) {
